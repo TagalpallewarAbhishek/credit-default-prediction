@@ -22,9 +22,8 @@ plt.rcParams.update({
     "axes.spines.right": False,
 })
 
-ASSETS_DIR = "docs/assets"
-os.makedirs(ASSETS_DIR, exist_ok=True)
 os.makedirs("results", exist_ok=True)
+PLOT_PATH = "results/model_loss_comparison.png"
 
 COST_FN = 10_000.0
 COST_FP = 1_500.0
@@ -70,7 +69,7 @@ def plot_loss_comparison(df: pd.DataFrame) -> None:
 
     fig, ax = plt.subplots(figsize=(9.5, max(4.2, 0.85 * len(models))))
     bars_05 = ax.barh(y_pos + height / 2, loss_05_k, height, label="Naive Threshold (τ = 0.50)", color="#8c969e", edgecolor="black", linewidth=0.6)
-    bars_opt = ax.barh(y_pos - height / 2, loss_opt_k, height, label=f"Cost-Optimal Threshold (τ* = {TAU_STAR:.3f})", color="#1b7837", edgecolor="black", linewidth=0.6)
+    bars_opt = ax.barh(y_pos - height / 2, loss_opt_k, height, label=f"Cost-ratio threshold (τ = {TAU_STAR:.4f})", color="#1b7837", edgecolor="black", linewidth=0.6)
 
     for bar in bars_05:
         w = bar.get_width()
@@ -84,14 +83,14 @@ def plot_loss_comparison(df: pd.DataFrame) -> None:
     ax.set_yticklabels(models)
     ax.invert_yaxis()
     ax.set_xlim(0, max(loss_05_k) * 1.16)
-    ax.set_xlabel("Validation Expected Financial Loss ($ Thousands — Lower is Better)")
-    ax.set_title("Model Selection Leaderboard: Naive (τ = 0.50) vs. Cost-Optimal (τ* = 0.1304)")
+    ax.set_xlabel("Validation scenario loss ($ thousands; lower is better)")
+    ax.set_title("Exploratory validation comparison at two thresholds")
     ax.grid(axis="x", alpha=0.25)
-    ax.legend(loc="lower right", fontsize=9)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, fontsize=9)
     plt.tight_layout()
-    plt.savefig(f"{ASSETS_DIR}/model_loss_comparison.png")
+    plt.savefig(PLOT_PATH)
     plt.close(fig)
-    print(f"[Saved] {ASSETS_DIR}/model_loss_comparison.png")
+    print(f"[Saved] {PLOT_PATH}")
 
 
 def main():
@@ -106,16 +105,17 @@ def main():
         "RBF SVM (Isotonic)": cal_npz["RBF SVM (Isotonic Calibrated)"],
     }
 
-    # Automatically load Siddhantkumar's tree ensembles once pushed
-    ensemble_path = "results/ensemble_val_probs.npz"
-    if os.path.exists(ensemble_path):
-        ens_npz = np.load(ensemble_path)
-        for key in ens_npz.files:
-            if key != "y_val":
-                all_probs[key] = ens_npz[key]
-        print(f"[Loaded] Found ensemble predictions in {ensemble_path}: {[k for k in ens_npz.files if k != 'y_val']}")
-    else:
-        print(f"[Waiting] {ensemble_path} not found yet — generating leaderboard for current models.")
+    for path in ("results/ensemble_val_probs.npz", "results/additional_val_probs.npz"):
+        if not os.path.exists(path):
+            print(f"[Waiting] {path} not found; generating leaderboard for available models.")
+            continue
+        with np.load(path) as saved:
+            if not np.array_equal(y_val, saved["y_val"]):
+                raise ValueError(f"Validation labels in {path} do not match the baseline split")
+            names = [key for key in saved.files if key != "y_val"]
+            for name in names:
+                all_probs[name] = saved[name]
+        print(f"[Loaded] {path}: {names}")
 
     rows = [evaluate_probs(name, y_val, probs) for name, probs in all_probs.items()]
     leaderboard = pd.DataFrame(rows).sort_values(by=["Loss_at_0.13 ($)", "PR_AUC"], ascending=[True, False])

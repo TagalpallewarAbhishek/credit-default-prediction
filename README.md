@@ -25,8 +25,9 @@ python src/train_baselines.py
 python src/analyze_baselines.py
 python src/calibrate_and_optimize.py
 python src/train_ensembles.py
-python src/evaluate_all_models.py
 python src/cost_optimizer.py
+python src/train_additional_models.py
+python src/evaluate_all_models.py
 python -m http.server 8000 --directory docs
 ```
 
@@ -36,7 +37,18 @@ The fixed stratified split is 70/15/15 with `random_state=42`. The script drops 
 
 ## Results and verification
 
-`results/metrics_summary.csv` contains all six validation model comparisons. `results/ensemble_val_metrics.csv` has ensemble hyperparameters and cross-validation scores. The `.npz` files retain validation probabilities. `results/test_metrics.json` records the one-time held-out test report. `results/test_predictions.json` holds true labels and probabilities for the interactive simulator; `docs/assets/test_predictions.json` is its website copy. Figures are in `docs/assets/`.
+`results/metrics_summary.csv` preserves the original six-model validation comparison used to select the model for the held-out test. `results/val_leaderboard.csv` and `results/model_loss_comparison.png` compare all eight models on validation, including the later Decision Tree and XGBoost experiments. `results/ensemble_val_metrics.csv` and `results/additional_val_metrics.csv` record tuned hyperparameters, five-fold training CV PR-AUC, and validation scores. The matching `.npz` files retain validation probabilities. `results/test_metrics.json` records the original one-time held-out test report. `results/test_predictions.json` holds true labels and probabilities for the interactive simulator; `docs/assets/test_predictions.json` is its website copy. Other figures are in `docs/assets/`.
+
+Decision Tree and XGBoost use the same training and validation rows, preprocessing pipeline, five stratified training folds, and average-precision tuning criterion as the Random Forest and HistGradientBoosting experiments. The Decision Tree grid searches maximum depth 4 or 8 and minimum leaf size 20 or 100. XGBoost uses 200 boosting rounds and searches depth 3 or 5 and learning rate 0.05 or 0.1. Both use `random_state=42`. The validation comparison uses $10,000 per false negative and $1,500 per false positive at the fixed theoretical threshold 0.1304.
+
+| Model | Best tuning values | CV PR-AUC | Validation PR-AUC | Validation ROC-AUC | Validation loss at 0.1304 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| XGBoost | depth 3, learning rate 0.05 | 0.5610 | 0.5515 | 0.7814 | $4,145,000 |
+| HistGradientBoosting | leaf nodes 15, learning rate 0.05 | 0.5656 | 0.5526 | 0.7800 | $4,187,500 |
+| Random Forest | depth 8, minimum leaf size 2 | 0.5633 | 0.5527 | 0.7771 | $4,235,500 |
+| Decision Tree | depth 8, minimum leaf size 100 | 0.5295 | 0.5209 | 0.7690 | $4,392,500 |
+
+XGBoost missed 158 defaults and flagged 1,710 non-defaults on validation at 0.1304. Decision Tree missed 221 and flagged 1,455. XGBoost was added **after** the original held-out test result was inspected. Its $42,500 validation advantage over HistGradientBoosting is exploratory; no new unbiased test comparison or final-model claim follows from it. The existing test report remains for the originally selected HistGradientBoosting model. The website has not been updated with these later experiments.
 
 The selected HistGradientBoosting model had validation PR-AUC 0.5526, ROC-AUC 0.7800, and loss $4,187,500 at the theoretical 0.1304 threshold. A validation sweep selected 0.135. On 4,500 test accounts, PR-AUC was 0.5596, ROC-AUC 0.7798, and Brier score 0.1348. At 0.135, 171 defaults were missed and 1,686 non-defaults were flagged. Test-sample assumed loss was $4,239,000 versus $6,677,000 at 0.50. These are scenario costs using $10,000 per missed default and $1,500 per false alarm, not observed savings.
 
@@ -73,3 +85,4 @@ The website's visual direction was inspired by the [GoShuin — Every stamp, a m
 
 - Yeh, I.-C. (2009). [Default of Credit Card Clients](https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients). UCI Machine Learning Repository. DOI: [10.24432/C55S3H](https://doi.org/10.24432/C55S3H).
 - Pedregosa, F. et al. (2011). [Scikit-learn: Machine Learning in Python](https://jmlr.org/papers/v12/pedregosa11a.html). *Journal of Machine Learning Research*, 12, 2825–2830.
+- Chen, T. and Guestrin, C. (2016). [XGBoost: A Scalable Tree Boosting System](https://doi.org/10.1145/2939672.2939785). *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 785–794.
