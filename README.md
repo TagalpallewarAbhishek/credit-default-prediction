@@ -52,11 +52,10 @@ XGBoost missed 158 defaults and flagged 1,710 non-defaults on validation at 0.13
 
 The selected HistGradientBoosting model had validation PR-AUC 0.5526, ROC-AUC 0.7800, and loss $4,187,500 at the theoretical 0.1304 threshold. A validation sweep selected 0.135. On 4,500 test accounts, PR-AUC was 0.5596, ROC-AUC 0.7798, and Brier score 0.1348. At 0.135, 171 defaults were missed and 1,686 non-defaults were flagged. Test-sample assumed loss was $4,239,000 versus $6,677,000 at 0.50. These are scenario costs using $10,000 per missed default and $1,500 per false alarm, not observed savings.
 
-## Pending handoff items
+## Team division & walkthrough
 
-- Representative false-negative and false-positive borrower-profile analysis awaits review. The website shows final aggregate counts and marks profile examples pending.
-- The planned notebooks are not yet present. The scripts above are the executable workflow and are the source for current saved results.
-- To host the canonical URL from the original repository, its owner must enable GitHub Pages using GitHub Actions. The same site is already enabled on the team member's fork. Verify the public URL in a private browser window.
+- **Tagalpallewar Abhishek Prashant (24110364):** Data audit and cleaning, fixed 70/15/15 stratified split (`src/01_inspect_data.py`, `src/02_split_data.py`), leak-free feature engineering pipeline (`src/preprocessing.py`), linear and kernel baselines (`src/train_baselines.py`), EDA/Lasso/error archetype analysis (`src/analyze_baselines.py`), probability calibration (`src/calibrate_and_optimize.py`), and end-to-end walkthrough notebook (`notebooks/01_end_to_end_walkthrough.ipynb`).
+- **Siddhantkumar Vinay Thute (24110373):** Tree-based ensembles (`src/train_ensembles.py`, `src/train_additional_models.py`), validation cost-curve threshold optimization and one-time holdout test evaluation (`src/cost_optimizer.py`), and static GitHub Pages report + interactive cost simulator (`docs/`).
 
 ## Publish with GitHub Actions
 
@@ -75,7 +74,7 @@ The data describe Taiwan accounts in 2005. The dataset does not include actual l
 
 ## AI-use disclosure
 
-AI tools assisted with code, analysis workflow, website wording/layout, and the original halftone hero illustration in `docs/assets/hero-ledger.webp`. The team remains responsible for checking computations, source citations, and claims against the saved data and code. **Pending team review:** add specific tools and the division of AI-assisted work before submission.
+Google Gemini and OpenAI Codex/ChatGPT assisted with Python pipeline scaffolding, diagnostic plotting scripts, static website layout/styling, and the original halftone hero illustration in `docs/assets/hero-ledger.webp` (generated via built-in ImageGen; prompt saved in `docs/assets/hero-ledger.prompt.txt`). Both team members independently verified all mathematical derivations, split boundaries, saved metrics, and literature citations against the raw code and data.
 
 The illustration was made with the built-in ImageGen tool. Its [exact prompt](docs/assets/hero-ledger.prompt.txt) is saved with the asset.
 
