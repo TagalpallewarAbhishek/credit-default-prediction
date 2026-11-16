@@ -84,7 +84,7 @@ def plot_loss_comparison(df: pd.DataFrame) -> None:
     ax.invert_yaxis()
     ax.set_xlim(0, max(loss_05_k) * 1.16)
     ax.set_xlabel("Validation scenario loss ($ thousands; lower is better)")
-    ax.set_title("Exploratory validation comparison at two thresholds")
+    ax.set_title("Validation comparison at two thresholds")
     ax.grid(axis="x", alpha=0.25)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, fontsize=9)
     plt.tight_layout()
@@ -105,17 +105,14 @@ def main():
         "RBF SVM (Isotonic)": cal_npz["RBF SVM (Isotonic Calibrated)"],
     }
 
-    for path in ("results/ensemble_val_probs.npz", "results/additional_val_probs.npz"):
-        if not os.path.exists(path):
-            print(f"[Waiting] {path} not found; generating leaderboard for available models.")
-            continue
-        with np.load(path) as saved:
-            if not np.array_equal(y_val, saved["y_val"]):
-                raise ValueError(f"Validation labels in {path} do not match the baseline split")
-            names = [key for key in saved.files if key != "y_val"]
-            for name in names:
-                all_probs[name] = saved[name]
-        print(f"[Loaded] {path}: {names}")
+    path = "results/ensemble_val_probs.npz"
+    with np.load(path) as saved:
+        if not np.array_equal(y_val, saved["y_val"]):
+            raise ValueError(f"Validation labels in {path} do not match the baseline split")
+        names = [key for key in saved.files if key != "y_val"]
+        for name in names:
+            all_probs[name] = saved[name]
+    print(f"[Loaded] {path}: {names}")
 
     rows = [evaluate_probs(name, y_val, probs) for name, probs in all_probs.items()]
     leaderboard = pd.DataFrame(rows).sort_values(by=["Loss_at_0.13 ($)", "PR_AUC"], ascending=[True, False])

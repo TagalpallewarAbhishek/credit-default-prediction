@@ -1,3 +1,0 @@
-Model,Best_Params,CV_PR_AUC,Val_PR_AUC,Val_ROC_AUC,Val_Brier
-Decision Tree,"{'clf__max_depth': 8, 'clf__min_samples_leaf': 100}",0.5294577933220264,0.5209043088927423,0.7689980573337443,0.13966882928835167
-XGBoost,"{'clf__learning_rate': 0.05, 'clf__max_depth': 3}",0.5610479056355548,0.5515368381493315,0.7813648843360885,0.1354512870311737
