@@ -124,6 +124,7 @@ figcaption { margin-top: .55rem; color: var(--muted); font-size: .83rem; line-he
 .controls { display: grid; gap: 1.25rem; margin-top: 1.5rem; }
 .controls > label { font-weight: 650; }
 .controls output { color: var(--accent); font-variant-numeric: tabular-nums; }
+.threshold-control { margin-bottom: 1.25rem; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
 .cost-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .cost-controls label { font-size: .87rem; font-weight: 650; }
