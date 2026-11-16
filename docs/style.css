@@ -44,6 +44,10 @@ a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; line-height: 1.1; }
 h2 { font-size: clamp(2.7rem, 4.8vw, 4.4rem); letter-spacing: -.045em; margin: 0 0 .45em; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  h1, h2, h3, .contents p { transition: transform .2s ease; transform-origin: left center; }
+  h1:hover, h2:hover, h3:hover, .contents p:hover { transform: scale(1.025); }
+}
 p { max-width: 71ch; }
 strong { font-weight: 700; }
 code { padding: .05rem .22rem; background: var(--panel); font-size: .9em; }
@@ -71,7 +75,7 @@ ol, ul { padding-left: 1.5rem; }
 .theme-toggle::before { content: "◐"; margin-right: .4rem; color: var(--accent); font-size: 1rem; vertical-align: -.05em; }
 .theme-toggle:hover { border-color: var(--accent); }
 
-main { overflow: hidden; background: var(--paper); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+main { overflow: clip; background: var(--paper); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
 .hero { position: relative; display: grid; align-items: center; min-height: min(780px, 82vh); padding: clamp(5rem, 9vw, 9rem) clamp(32px, 6vw, 86px) 6rem; isolation: isolate; overflow: hidden; background: var(--hero-paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .hero-art { position: absolute; z-index: 0; inset: 0 0 0 auto; width: 58%; height: 100%; object-fit: cover; object-position: center; -webkit-mask-image: linear-gradient(to right, transparent, black 19%); mask-image: linear-gradient(to right, transparent, black 19%); }
 html[data-theme="dark"] .hero-art { filter: brightness(.6) saturate(.65); opacity: .7; }
