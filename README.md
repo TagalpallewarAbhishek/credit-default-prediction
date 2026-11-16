@@ -2,12 +2,12 @@
 
 ES 335 final project by Tagalpallewar Abhishek Prashant (24110364) and Siddhantkumar Vinay Thute (24110373).
 
-**Project website:** https://siddhant171.github.io/credit-default-prediction/ (hosted from the team member's fork). The static site source is in [`docs/`](docs/).  
+**Project website:** https://tagalpallewarabhishek.github.io/credit-default-prediction/ (hosted from the original repository). The static site source is in [`docs/`](docs/).
 **Repository:** https://github.com/TagalpallewarAbhishek/credit-default-prediction
 
 ## Question and data
 
-Can account and payment history predict next-month default, and which probability threshold minimizes loss under different error costs? One row is one client account. The target is next-month default payment, not whether a new loan should be approved.
+Can account and payment history predict next-month default, and which probability threshold minimizes loss under different error costs? The unit of prediction is an account-month snapshot for September 2005: one row per client account, with next-month default payment as the target. This is not a decision about whether to approve a new loan.
 
 The [UCI Default of Credit Card Clients dataset](https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients) has 30,000 Taiwan accounts, 23 predictors, and one binary target. It contains credit limits, demographics, six months of repayment statuses, bills, and payments. Roughly 22.12% of rows are defaults.
 
@@ -32,7 +32,7 @@ python -m http.server 8000 --directory docs
 
 Open `http://localhost:8000/`. `01_inspect_data.py` downloads the UCI `.xls` file and saves `data/raw_credit_default.csv`. If the URL is unavailable, download the file from UCI and save a CSV copy with that path and the original column names. The split script then exports `data/train.csv`, `data/val.csv`, and `data/test.csv`.
 
-The fixed stratified split is 70/15/15 with `random_state=42`. The script drops `ID`, renames the target to `TARGET` and `PAY_0` to `PAY_1`, groups undocumented education and marriage codes, and retains negative bill balances. Learned scaling and encoding fit inside model pipelines on training folds only.
+The fixed stratified split is 70/15/15 with `random_state=42`. The script drops `ID`, renames the target to `TARGET` and `PAY_0` to `PAY_1`, and groups undocumented education and marriage codes. Negative bill amounts can indicate credit balances, such as overpayments or adjustments, but the dataset does not identify their cause; they are retained rather than treated as missing. Utilization and payment-to-bill ratios compare balances and payments across accounts with different limits and debts. Learned scaling and encoding fit inside model pipelines on training folds only.
 
 ## Results and verification
 
@@ -52,16 +52,9 @@ The selected HistGradientBoosting model had validation PR-AUC 0.5526, ROC-AUC 0.
 - **Tagalpallewar Abhishek Prashant (24110364):** Data audit and cleaning, fixed 70/15/15 stratified split (`src/01_inspect_data.py`, `src/02_split_data.py`), leak-free feature engineering pipeline (`src/preprocessing.py`), linear and kernel baselines (`src/train_baselines.py`), EDA/Lasso/error archetype analysis (`src/analyze_baselines.py`), probability calibration (`src/calibrate_and_optimize.py`), and end-to-end walkthrough notebook (`notebooks/01_end_to_end_walkthrough.ipynb`).
 - **Siddhantkumar Vinay Thute (24110373):** Tree-based ensembles (`src/train_ensembles.py`), validation cost-curve threshold optimization and one-time holdout test evaluation (`src/cost_optimizer.py`), and static GitHub Pages report + interactive cost simulator (`docs/`).
 
-## Publish with GitHub Actions
+## Website deployment
 
-The workflow in [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) uploads `docs/` and deploys it on pushes to `main` that change the site. The repository owner must enable Pages once:
-
-1. Open the original repository's **Settings → Pages**.
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-3. Open **Actions → Deploy website to GitHub Pages → Run workflow**, select `main`, and run it.
-4. Wait for the `deploy` job to finish. Open the URL shown in **Settings → Pages** in a private browser window.
-
-The expected canonical URL is `https://tagalpallewarabhishek.github.io/credit-default-prediction/`. The owner needs admin or maintainer permission to change the Pages source. If the workflow is blocked, check **Settings → Actions → General** for Actions permissions and **Settings → Environments → github-pages** for deployment restrictions.
+The live website is https://tagalpallewarabhishek.github.io/credit-default-prediction/. The workflow in [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) uploads `docs/` and deploys it on pushes to `main` that change the site.
 
 ## Limitations
 
