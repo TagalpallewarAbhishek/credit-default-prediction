@@ -6,6 +6,7 @@ let evidence;
 let testPredictions;
 let curveType = 'roc';
 let isolatedModel = null;
+let scenarioCosts = {fn: 10000, fp: 1500};
 
 function color(index) { return COLORS[index % COLORS.length]; }
 function coordinates(points, x, y) {
@@ -116,17 +117,35 @@ function renderThreshold() {
   const requested = Number($('threshold-slider').value);
   const index = Math.round(requested*100)-1;
   const left = 55, right = 684, top = 24, bottom = 290;
-  const maxLoss = Math.max(...model.losses)*1.05;
+  const losses = model.false_negatives.map((fn, i) => fn*scenarioCosts.fn + model.false_positives[i]*scenarioCosts.fp);
+  const maxLoss = Math.max(1, ...losses)*1.05;
   const x = (v) => left + (v-.01)/.98*(right-left);
   const y = (v) => bottom - v/maxLoss*(bottom-top);
-  const points = model.thresholds.map((threshold,i) => [threshold,model.losses[i]]);
-  const current = model.losses[index];
+  const points = model.thresholds.map((threshold,i) => [threshold,losses[i]]);
+  const current = losses[index];
   const ticks = [0, .25, .5, .75, 1].map((v) => `<line class="plot-grid" x1="${left}" x2="${right}" y1="${y(v*maxLoss)}" y2="${y(v*maxLoss)}"/><text class="plot-label" x="${left-8}" y="${y(v*maxLoss)+4}" text-anchor="end">${(v*maxLoss/1e6).toFixed(1)}m</text>`).join('');
   $('threshold-chart').innerHTML = `<title>Validation assumed loss by threshold for ${model.name}</title>${ticks}<path d="${coordinates(points,x,y)}" stroke="${color(Number($('threshold-model').value))}" stroke-width="3" fill="none" stroke-linejoin="round"/><line x1="${x(requested)}" x2="${x(requested)}" y1="${top}" y2="${bottom}" stroke="var(--accent)" stroke-dasharray="5 5"/>${svgDot(x(requested),y(current),7,color(Number($('threshold-model').value)),`${model.name} validation loss ${money(current)} at threshold ${requested.toFixed(2)}`)}<text class="plot-label" x="${left}" y="320">0.01</text><text class="plot-label" x="${right}" y="320" text-anchor="end">0.99</text><text class="plot-label" x="370" y="347" text-anchor="middle">Probability threshold</text>`;
   $('threshold-value').textContent = requested.toFixed(2);
   $('threshold-loss').textContent = money(current);
   $('threshold-fn').textContent = fmt(model.false_negatives[index]);
   $('threshold-fp').textContent = fmt(model.false_positives[index]);
+  const bestIndex = losses.indexOf(Math.min(...losses));
+  $('scenario-note').textContent = `With these assumed costs, ${model.name} has its lowest displayed validation loss at threshold ${model.thresholds[bestIndex].toFixed(2)}. This is an exploratory 0.01-step comparison, not a new final choice.`;
+}
+
+function updateScenarioCosts() {
+  const missed = $('cost-missed');
+  const alarm = $('cost-alarm');
+  const valid = [missed, alarm].map((input) => {
+    const value = input.valueAsNumber;
+    const okay = Number.isInteger(value) && value >= 0 && value <= 10000000;
+    input.setAttribute('aria-invalid', String(!okay));
+    return okay;
+  }).every(Boolean);
+  $('cost-error').textContent = valid ? '' : 'Enter a whole dollar amount from 0 to 10,000,000 for each cost.';
+  if (!valid) return;
+  scenarioCosts = {fn: missed.valueAsNumber, fp: alarm.valueAsNumber};
+  renderThreshold();
 }
 
 function renderTest() {
@@ -163,6 +182,9 @@ function start() {
     evidence = window.creditPreviewData?.validation;
     testPredictions = window.creditPreviewData?.test;
     if (evidence.models.length !== 6 || evidence.rows !== 4500 || testPredictions.y_true.length !== 4500 || testPredictions.model !== 'HistGradientBoosting') throw new Error('Saved data do not match this six-model report');
+    scenarioCosts = {fn: evidence.cost_fn, fp: evidence.cost_fp};
+    $('cost-missed').value = scenarioCosts.fn;
+    $('cost-alarm').value = scenarioCosts.fp;
     $('threshold-model').innerHTML = evidence.models.map((model,index) => `<option value="${index}">${model.name}</option>`).join('');
     $('test-slider').value = testPredictions.selected_threshold;
     renderCurve(); renderMetric(); renderLossBars(); renderThreshold(); renderTest();
@@ -183,6 +205,13 @@ $('curve-budget').addEventListener('input', renderCurve);
 $('metric-select').addEventListener('change', renderMetric);
 $('threshold-model').addEventListener('change', renderThreshold);
 $('threshold-slider').addEventListener('input', renderThreshold);
+$('cost-missed').addEventListener('input', updateScenarioCosts);
+$('cost-alarm').addEventListener('input', updateScenarioCosts);
+$('reset-costs').addEventListener('click', () => {
+  $('cost-missed').value = evidence.cost_fn;
+  $('cost-alarm').value = evidence.cost_fp;
+  updateScenarioCosts();
+});
 $('test-slider').addEventListener('input', renderTest);
 const observer = new IntersectionObserver((entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { document.querySelectorAll('.side-index nav a').forEach((link) => link.classList.toggle('active',link.hash === `#${entry.target.id}`)); } }); }, {rootMargin:'-15% 0px -70% 0px'});
 document.querySelectorAll('.section[id]').forEach((section) => observer.observe(section));
