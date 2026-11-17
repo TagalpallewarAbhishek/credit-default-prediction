@@ -48,29 +48,29 @@ function renderCurve() {
     ? 'ROC curve: recall against false-positive rate, measured on validation.'
     : 'Precision–recall curve: precision at each recall level, measured on validation.';
   $('curve-note').textContent = curveType === 'roc'
-    ? 'ROC is threshold-free: the chart shows ranking at many possible operating points. The slider is for exploration, not a threshold selected for deployment.'
-    : 'The horizontal line shows the 22.1% default rate. Higher precision at a given recall means fewer false alarms among flagged accounts. The majority dummy has only two distinct points, so intermediate recall is unavailable.';
+    ? 'The ROC curves show validation ranking across thresholds. Slider readouts are approximate because curves are sampled for display. The majority dummy has only two operating points; intermediate false-positive rates are unavailable.'
+    : 'The horizontal line shows the 22.1% validation default rate. Slider readouts are approximate because curves are sampled for display. The majority dummy has only two operating points; intermediate recall is unavailable.';
   const baseline = curveType === 'roc'
     ? `<path d="M${x(0)},${y(0)} L${x(1)},${y(1)}" stroke="#9bacb1" stroke-dasharray="5 6" fill="none"/>`
     : `<line x1="${left}" x2="${right}" y1="${y(evidence.defaults/evidence.rows)}" y2="${y(evidence.defaults/evidence.rows)}" stroke="#9bacb1" stroke-dasharray="5 6"/>`;
   const lines = evidence.models.map((model, index) => {
     const points = model[curveType];
     const dimmed = isolatedModel && isolatedModel !== model.name;
-    if (curveType === 'pr' && model.name === 'Dummy (Majority)') {
-      return points.map(([a,b]) => svgDot(x(a),y(b),5,color(index),'Dummy majority has only two distinct precision–recall points')).join('');
+    if (model.name === 'Dummy (Majority)') {
+      return points.map(([a,b]) => svgDot(x(a),y(b),5,color(index),`Dummy majority operating point: ${Math.round(a*100)}% ${label}, ${Math.round(b*100)}% ${valueLabel}`,dimmed ? 'dimmed' : '')).join('');
     }
     return `<path class="curve-path ${dimmed ? 'dimmed' : ''} ${isolatedModel === model.name ? 'highlighted' : ''}" d="${coordinates(points,x,y)}" stroke="${color(index)}"/>`;
   }).join('');
   const markers = evidence.models.map((model, index) => {
-    if (curveType === 'pr' && model.name === 'Dummy (Majority)' && budget > 0 && budget < 1) return '';
+    if (model.name === 'Dummy (Majority)') return '';
     const value = interpolate(model[curveType], budget);
     const dimmed = isolatedModel && isolatedModel !== model.name;
-    return svgDot(x(budget), y(value), 6, color(index), `${model.name}: ${Math.round(value*100)}% ${valueLabel} at ${Math.round(budget*100)}% ${label}`, dimmed ? 'dimmed' : '');
+    return svgDot(x(budget), y(value), 6, color(index), `${model.name}: approximately ${Math.round(value*100)}% ${valueLabel} at ${Math.round(budget*100)}% ${label}`, dimmed ? 'dimmed' : '');
   }).join('');
   $('curve-chart').classList.add('chart-dark');
   $('curve-chart').innerHTML = `<title>${curveType === 'roc' ? 'Validation ROC' : 'Validation precision–recall'} curves for six models</title>${chartGrid(true)}${baseline}<line x1="${x(budget)}" x2="${x(budget)}" y1="${top}" y2="${bottom}" stroke="#e8dcb7" stroke-dasharray="5 6"/>${lines}${markers}<text class="curve-label" x="370" y="404" text-anchor="middle">${curveType === 'roc' ? 'False-positive rate' : 'Recall'}</text><text class="curve-label" x="16" y="190" text-anchor="middle" transform="rotate(-90 16 190)">${curveType === 'roc' ? 'Recall' : 'Precision'}</text>`;
   $('curve-readouts').innerHTML = evidence.models.map((model, index) => {
-    const unavailable = curveType === 'pr' && model.name === 'Dummy (Majority)' && budget > 0 && budget < 1;
+    const unavailable = model.name === 'Dummy (Majority)' && budget > 0 && budget < 1;
     const value = interpolate(model[curveType], budget);
     const active = isolatedModel === model.name ? 'active' : '';
     return `<button type="button" class="curve-readout ${active}" data-model="${index}" style="--model-color:${color(index)}" aria-pressed="${active ? 'true' : 'false'}"><i aria-hidden="true"></i><span>${model.name}</span><strong>${unavailable ? '—' : `${Math.round(value*100)}%`}</strong></button>`;
