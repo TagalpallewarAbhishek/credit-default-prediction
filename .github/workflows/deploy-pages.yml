@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - website-preview/**
+      - docs/**
       - .github/workflows/deploy-pages.yml
   workflow_dispatch:
 
@@ -29,16 +29,16 @@ jobs:
         uses: actions/checkout@v4
       - name: Check static site files
         run: |
-          test -f website-preview/index.html
-          test -f website-preview/style.css
-          test -f website-preview/app.js
-          test -f website-preview/assets/data.js
+          test -f docs/index.html
+          test -f docs/style.css
+          test -f docs/app.js
+          test -f docs/assets/data.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload website
         uses: actions/upload-pages-artifact@v4
         with:
-          path: website-preview
+          path: docs
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4

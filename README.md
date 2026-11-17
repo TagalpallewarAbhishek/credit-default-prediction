@@ -2,7 +2,7 @@
 
 ES 335 final project by Tagalpallewar Abhishek Prashant (24110364) and Siddhantkumar Vinay Thute (24110373).
 
-**Project website:** https://tagalpallewarabhishek.github.io/credit-default-prediction/ (hosted from the original repository). The published static site source is in [`website-preview/`](website-preview/); the earlier design is retained in [`docs/`](docs/).
+**Project website:** https://tagalpallewarabhishek.github.io/credit-default-prediction/ (public GitHub Pages site). The submitted site source is in [`docs/`](docs/); the older design is archived in [`archive/previous-website/`](archive/previous-website/).
 **Repository:** https://github.com/TagalpallewarAbhishek/credit-default-prediction
 
 ## Question and data
@@ -27,8 +27,8 @@ python src/calibrate_and_optimize.py
 python src/train_ensembles.py
 python src/cost_optimizer.py
 python src/evaluate_all_models.py
-python website-preview/generate_chart_data.py
-python -m http.server 8000 --directory website-preview
+python docs/generate_chart_data.py
+python -m http.server 8000 --directory docs
 ```
 
 Open `http://localhost:8000/`. `01_inspect_data.py` downloads the UCI `.xls` file and saves `data/raw_credit_default.csv`. If the URL is unavailable, download the file from UCI and save a CSV copy with that path and the original column names. The split script then exports `data/train.csv`, `data/val.csv`, and `data/test.csv`.
@@ -37,7 +37,7 @@ The fixed stratified split is 70/15/15 with `random_state=42`. The script drops 
 
 ## Results and verification
 
-`results/metrics_summary.csv` and `results/val_leaderboard.csv` compare the six models on validation; `results/model_loss_comparison.png` shows their loss at two thresholds. `results/ensemble_val_metrics.csv` records tuned hyperparameters, five-fold training CV PR-AUC, and validation scores. The matching `.npz` files retain validation probabilities. `results/test_metrics.json` records the one-time held-out test report. `results/test_predictions.json` holds true labels and probabilities for the interactive simulator; `website-preview/generate_chart_data.py` bundles validation curves and final-model test predictions into `website-preview/assets/data.js` for the published site. Other original figures remain in `docs/assets/`.
+`results/metrics_summary.csv` and `results/val_leaderboard.csv` compare the six models on validation; `results/model_loss_comparison.png` shows their loss at two thresholds. `results/ensemble_val_metrics.csv` records tuned hyperparameters, five-fold training CV PR-AUC, and validation scores. The matching `.npz` files retain validation probabilities. `results/test_metrics.json` records the reported held-out test result. `results/test_predictions.json` holds true labels and probabilities for the interactive simulator; `docs/generate_chart_data.py` bundles validation curves and final-model test predictions into `docs/assets/data.js` for the published site. Other figures and the illustration prompt remain in `docs/assets/`.
 
 The validation comparison uses $10,000 per false negative and $1,500 per false positive at the fixed theoretical threshold 0.1304.
 
@@ -51,18 +51,17 @@ The selected HistGradientBoosting model had validation PR-AUC 0.5526, ROC-AUC 0.
 ## Team division & walkthrough
 
 - **Tagalpallewar Abhishek Prashant (24110364):** Data audit and cleaning, fixed 70/15/15 stratified split (`src/01_inspect_data.py`, `src/02_split_data.py`), leak-free feature engineering pipeline (`src/preprocessing.py`), linear and kernel baselines (`src/train_baselines.py`), EDA/Lasso/error archetype analysis (`src/analyze_baselines.py`), probability calibration (`src/calibrate_and_optimize.py`), and end-to-end walkthrough notebook (`notebooks/01_end_to_end_walkthrough.ipynb`).
-- **Siddhantkumar Vinay Thute (24110373):** Tree-based ensembles (`src/train_ensembles.py`), validation cost-curve threshold optimization and one-time holdout test evaluation (`src/cost_optimizer.py`), and static GitHub Pages report + interactive cost simulator (`website-preview/`, with earlier design in `docs/`).
+- **Siddhantkumar Vinay Thute (24110373):** Tree-based ensembles (`src/train_ensembles.py`), validation cost-curve threshold optimization and held-out test evaluation (`src/cost_optimizer.py`), and the static GitHub Pages report with interactive charts (`docs/`).
 
 ## Publish with GitHub Actions
 
-The workflow in [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) uploads `website-preview/` and deploys it on pushes to `main` that change the site. The repository owner must enable Pages once:
+The workflow in [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) uploads `docs/` and deploys it on pushes to `main` that change the site. GitHub Pages is already enabled with **GitHub Actions** as its source. To verify or redeploy:
 
-1. Open the original repository's **Settings → Pages**.
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-3. Open **Actions → Deploy website to GitHub Pages → Run workflow**, select `main`, and run it.
-4. Wait for the `deploy` job to finish. Open the URL shown in **Settings → Pages** in a private browser window.
+1. Open the repository's **Settings → Pages** and confirm **Source: GitHub Actions**.
+2. Open **Actions → Deploy website to GitHub Pages** and check the latest run. To redeploy, choose **Run workflow** on `main`.
+3. Open the URL shown in **Settings → Pages** in a private browser window.
 
-The expected canonical URL is `https://tagalpallewarabhishek.github.io/credit-default-prediction/`. The owner needs admin or maintainer permission to change the Pages source. If the workflow is blocked, check **Settings → Actions → General** for Actions permissions and **Settings → Environments → github-pages** for deployment restrictions.
+The canonical URL is `https://tagalpallewarabhishek.github.io/credit-default-prediction/`. The owner needs admin or maintainer permission to change the Pages source.
 
 ## Limitations
 
@@ -70,7 +69,7 @@ The data describe Taiwan accounts in 2005. The dataset does not include actual l
 
 ## AI-use disclosure
 
-Google Gemini and OpenAI Codex/ChatGPT assisted with Python pipeline scaffolding, diagnostic plotting scripts, static website layout/styling, and the original halftone hero illustration in `docs/assets/hero-ledger.webp` (generated via built-in ImageGen; prompt saved in `docs/assets/hero-ledger.prompt.txt`). Both team members independently verified all mathematical derivations, split boundaries, saved metrics, and literature citations against the raw code and data.
+Google Gemini and OpenAI Codex/ChatGPT assisted with Python pipeline scaffolding, diagnostic plotting scripts, static website layout/styling, and the original halftone hero illustration in `docs/assets/hero-ledger.webp` (generated via built-in ImageGen; prompt saved in `docs/assets/hero-ledger.prompt.txt`). The published numeric claims and charts were checked against the source code, saved probabilities, and result files. The authors remain responsible for the final submission.
 
 The illustration was made with the built-in ImageGen tool. Its [exact prompt](docs/assets/hero-ledger.prompt.txt) is saved with the asset.
 

@@ -1,3 +1,3 @@
-# Notebook handoff placeholder
+# Walkthrough notebook
 
-The planned `01_eda_and_split.ipynb` and `02_modeling_eval.ipynb` have not yet been reviewed or added. The executable analysis currently lives in `src/`; run order and saved outputs are documented in the root `README.md`. Do not treat this placeholder as a completed notebook.
+[`01_end_to_end_walkthrough.ipynb`](01_end_to_end_walkthrough.ipynb) explains the preprocessing pipeline, six-model validation comparison, reported test result, and diagnostic figures. The executable training and evaluation steps are in [`src/`](../src/); run them in the order given in the [project README](../README.md). The notebook reads saved results and figures from `results/` and `docs/assets/`.

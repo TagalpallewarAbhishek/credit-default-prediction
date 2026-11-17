@@ -1,6 +1,6 @@
-"""Export validation evidence for the static website preview.
+"""Export validation evidence for the published static website.
 
-Run from the repository root: python website-preview/generate_chart_data.py
+Run from the repository root: python docs/generate_chart_data.py
 The test split is deliberately excluded from model-comparison charts.
 """
 
@@ -13,7 +13,7 @@ from sklearn.metrics import precision_recall_curve, roc_curve
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "website-preview" / "assets" / "data.js"
+OUT = ROOT / "docs" / "assets" / "data.js"
 COST_FN, COST_FP = 10_000, 1_500
 THRESHOLDS = np.linspace(0.01, 0.99, 99)
 MODELS = [
