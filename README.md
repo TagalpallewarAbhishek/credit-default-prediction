@@ -17,38 +17,38 @@ The [UCI Default of Credit Card Clients dataset](https://archive.ics.uci.edu/dat
 The diagram shows where each split is used. The test accounts enter only after model and threshold selection.
 
 ```mermaid
-flowchart TB
-    U["UCI credit-card records<br/>30,000 accounts · 23 predictors"] --> C["Audit and row-level cleaning<br/>drop ID · rename fields · group undocumented codes"]
-    C --> S{"Fixed stratified split<br/>random_state = 42"}
-    S -->|70%| T["Training<br/>21,000 accounts"]
-    S -->|15%| V["Validation<br/>4,500 accounts"]
-    S -->|15%| H["Held-out test<br/>4,500 accounts"]
+flowchart LR
+    subgraph DATA["01 · DATA"]
+        direction TB
+        U["UCI records<br/>30,000 accounts"] --> C["Audit and clean<br/>ID · codes · names"] --> S["Stratified split<br/>70 / 15 / 15 · seed 42"]
+    end
+    subgraph TRAIN["02 · TRAIN"]
+        direction TB
+        P["Fold-safe preprocessing<br/>engineer · scale · encode"] --> M["Six candidates<br/>baselines + tree ensembles"] --> CV["5-fold CV: L1/L2 + ensembles<br/>5-fold SVM calibration · dummy untuned"]
+    end
+    subgraph VALIDATE["03 · VALIDATE"]
+        direction TB
+        V["4,500 accounts<br/>PR-AUC · ROC-AUC · Brier"] --> CHOOSE["Choose HistGradientBoosting<br/>lowest assumed cost at 0.1304"] --> SWEEP["Sweep thresholds<br/>select 0.135"]
+    end
+    subgraph HOLDOUT["04 · TEST + REPORT"]
+        direction TB
+        REFIT["Refit chosen settings<br/>on 21,000 training accounts"] --> TEST["Evaluate on 4,500 test accounts<br/>using threshold 0.135"] --> REPORT["Save results<br/>publish interactive report"]
+    end
 
-    T --> P["Training-fold pipeline<br/>engineer features · scale numbers · one-hot encode categories"]
-    P --> B["Baselines<br/>majority · L1/L2 logistic · RBF SVM"]
-    P --> E["Tree ensembles<br/>Random Forest · HistGradientBoosting"]
-    B --> BT["L1/L2 tuning by 5-fold CV · dummy untuned<br/>SVM fixed settings, then 5-fold isotonic calibration"]
-    E --> ET["Ensemble tuning by 5-fold CV<br/>average precision score"]
-    BT --> COMP["Compare six validation scores<br/>PR-AUC · ROC-AUC · Brier · assumed loss"]
-    ET --> COMP
-    V --> COMP
-
-    COMP --> CHOOSE["Choose HistGradientBoosting<br/>lowest validation loss at threshold 0.1304"]
-    CHOOSE --> SWEEP["Sweep validation thresholds<br/>0.001 steps → selected 0.135"]
-    SWEEP --> REFIT["Fit selected configuration<br/>on the training split"]
-    T --> REFIT
-    REFIT --> TEST["Evaluate the chosen model and threshold<br/>on held-out test accounts"]
-    H --> TEST
-    TEST --> REPORT["Save metrics and predictions<br/>publish interactive report"]
+    DATA -->|training rows| TRAIN
+    DATA -->|validation rows| VALIDATE
+    TRAIN -->|fitted candidates| VALIDATE
+    VALIDATE -->|selected model and threshold| HOLDOUT
+    DATA -->|held-out rows| HOLDOUT
 
     classDef data fill:#e7f0ed,stroke:#33756b,color:#183c39,stroke-width:1.5px;
     classDef process fill:#f8f0df,stroke:#a36e38,color:#45301c,stroke-width:1.5px;
-    classDef model fill:#e8eff8,stroke:#4c6d96,color:#233c5b,stroke-width:1.5px;
     classDef decision fill:#f4e7df,stroke:#af624a,color:#4d2c25,stroke-width:1.8px;
-    class U,S,T,V,H data;
-    class C,P,B,E,BT,ET,REFIT process;
-    class COMP,CHOOSE,SWEEP decision;
-    class TEST,REPORT model;
+    classDef result fill:#e8eff8,stroke:#4c6d96,color:#233c5b,stroke-width:1.5px;
+    class U,C,S data;
+    class P,M,CV process;
+    class V,CHOOSE,SWEEP decision;
+    class REFIT,TEST,REPORT result;
 ```
 
 ## Setup and run
