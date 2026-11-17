@@ -165,7 +165,7 @@ function renderTest() {
 
 function setupTheme() {
   const stored = localStorage.getItem('credit-default-preview-theme');
-  document.documentElement.dataset.theme = stored === 'dark' || stored === 'light' ? stored : 'light';
+  document.documentElement.dataset.theme = stored === 'dark' || stored === 'light' ? stored : 'dark';
   const updateButton = () => { $('theme-toggle').textContent = document.documentElement.dataset.theme === 'dark' ? 'Light mode' : 'Dark mode'; };
   $('theme-toggle').addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
