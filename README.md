@@ -2,7 +2,7 @@
 
 ES 335 final project by Tagalpallewar Abhishek Prashant (24110364) and Siddhantkumar Vinay Thute (24110373).
 
-**Project website:** https://siddhant171.github.io/credit-default-prediction/ (hosted from the team member's fork). The static site source is in [`docs/`](docs/).  
+**Project website:** https://tagalpallewarabhishek.github.io/credit-default-prediction/ (hosted from the original repository). The published static site source is in [`website-preview/`](website-preview/); the earlier design is retained in [`docs/`](docs/).
 **Repository:** https://github.com/TagalpallewarAbhishek/credit-default-prediction
 
 ## Question and data
@@ -27,7 +27,8 @@ python src/calibrate_and_optimize.py
 python src/train_ensembles.py
 python src/cost_optimizer.py
 python src/evaluate_all_models.py
-python -m http.server 8000 --directory docs
+python website-preview/generate_chart_data.py
+python -m http.server 8000 --directory website-preview
 ```
 
 Open `http://localhost:8000/`. `01_inspect_data.py` downloads the UCI `.xls` file and saves `data/raw_credit_default.csv`. If the URL is unavailable, download the file from UCI and save a CSV copy with that path and the original column names. The split script then exports `data/train.csv`, `data/val.csv`, and `data/test.csv`.
@@ -36,7 +37,7 @@ The fixed stratified split is 70/15/15 with `random_state=42`. The script drops 
 
 ## Results and verification
 
-`results/metrics_summary.csv` and `results/val_leaderboard.csv` compare the six models on validation; `results/model_loss_comparison.png` shows their loss at two thresholds. `results/ensemble_val_metrics.csv` records tuned hyperparameters, five-fold training CV PR-AUC, and validation scores. The matching `.npz` files retain validation probabilities. `results/test_metrics.json` records the one-time held-out test report. `results/test_predictions.json` holds true labels and probabilities for the interactive simulator; `docs/assets/test_predictions.json` is its website copy. Other figures are in `docs/assets/`.
+`results/metrics_summary.csv` and `results/val_leaderboard.csv` compare the six models on validation; `results/model_loss_comparison.png` shows their loss at two thresholds. `results/ensemble_val_metrics.csv` records tuned hyperparameters, five-fold training CV PR-AUC, and validation scores. The matching `.npz` files retain validation probabilities. `results/test_metrics.json` records the one-time held-out test report. `results/test_predictions.json` holds true labels and probabilities for the interactive simulator; `website-preview/generate_chart_data.py` bundles validation curves and final-model test predictions into `website-preview/assets/data.js` for the published site. Other original figures remain in `docs/assets/`.
 
 The validation comparison uses $10,000 per false negative and $1,500 per false positive at the fixed theoretical threshold 0.1304.
 
@@ -50,11 +51,11 @@ The selected HistGradientBoosting model had validation PR-AUC 0.5526, ROC-AUC 0.
 ## Team division & walkthrough
 
 - **Tagalpallewar Abhishek Prashant (24110364):** Data audit and cleaning, fixed 70/15/15 stratified split (`src/01_inspect_data.py`, `src/02_split_data.py`), leak-free feature engineering pipeline (`src/preprocessing.py`), linear and kernel baselines (`src/train_baselines.py`), EDA/Lasso/error archetype analysis (`src/analyze_baselines.py`), probability calibration (`src/calibrate_and_optimize.py`), and end-to-end walkthrough notebook (`notebooks/01_end_to_end_walkthrough.ipynb`).
-- **Siddhantkumar Vinay Thute (24110373):** Tree-based ensembles (`src/train_ensembles.py`), validation cost-curve threshold optimization and one-time holdout test evaluation (`src/cost_optimizer.py`), and static GitHub Pages report + interactive cost simulator (`docs/`).
+- **Siddhantkumar Vinay Thute (24110373):** Tree-based ensembles (`src/train_ensembles.py`), validation cost-curve threshold optimization and one-time holdout test evaluation (`src/cost_optimizer.py`), and static GitHub Pages report + interactive cost simulator (`website-preview/`, with earlier design in `docs/`).
 
 ## Publish with GitHub Actions
 
-The workflow in [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) uploads `docs/` and deploys it on pushes to `main` that change the site. The repository owner must enable Pages once:
+The workflow in [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) uploads `website-preview/` and deploys it on pushes to `main` that change the site. The repository owner must enable Pages once:
 
 1. Open the original repository's **Settings → Pages**.
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
